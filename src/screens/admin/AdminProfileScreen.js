@@ -1,14 +1,10 @@
-/**
- * DF Mobile - Admin Profile Screen
- */
-
 import React, { useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
-  TouchableOpacity,
   StyleSheet,
+  TouchableOpacity,
+  ScrollView,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -18,15 +14,23 @@ import { useAuth } from '../../context/AuthContext';
 import { logoutUser } from '../../services/authService';
 import { COLORS } from '../../constants/colors';
 
-const AdminProfileScreen = ({ navigation }) => {
+const AdminProfileScreen = () => {
   const insets = useSafeAreaInsets();
   const { user, userProfile } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
 
+  const displayName = userProfile?.name || user?.displayName || 'Admin';
+  const email = userProfile?.email || user?.email || '';
+
+  const getInitials = (name) => {
+    if (!name) return 'AD';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
   const handleLogout = () => {
     Alert.alert(
       'Sign Out',
-      'Are you sure you want to sign out of the admin panel?',
+      'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -37,8 +41,7 @@ const AdminProfileScreen = ({ navigation }) => {
             try {
               await logoutUser();
             } catch (err) {
-              Alert.alert('Error', 'Could not sign out. Please try again.');
-            } finally {
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
               setLoggingOut(false);
             }
           },
@@ -47,30 +50,21 @@ const AdminProfileScreen = ({ navigation }) => {
     );
   };
 
-  const displayName = userProfile?.name || user?.displayName || 'Admin';
-  const displayEmail = user?.email || '';
-  const initials = displayName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  const adminMenu = [
+  const MENU_ITEMS = [
     {
-      section: 'Management',
+      section: 'Account',
       items: [
-        { icon: 'package-variant', label: 'Manage Products', onPress: () => navigation.navigate('ManageProducts') },
-        { icon: 'clipboard-list', label: 'Manage Orders', onPress: () => navigation.navigate('ManageOrders') },
-        { icon: 'account-group', label: 'Manage Users', onPress: () => navigation.navigate('ManageUsers') },
+        { icon: 'account-outline', label: 'Full Name', value: displayName },
+        { icon: 'email-outline', label: 'Email', value: email },
+        { icon: 'shield-account', label: 'Role', value: 'Administrator' },
       ],
     },
     {
-      section: 'System',
+      section: 'App Info',
       items: [
-        { icon: 'shield-check-outline', label: 'Privacy Policy', onPress: () => {} },
-        { icon: 'information-outline', label: 'About DF Mobile', onPress: () => {} },
-        { icon: 'help-circle-outline', label: 'Support', onPress: () => {} },
+        { icon: 'cellphone', label: 'App Name', value: 'DF Mobile' },
+        { icon: 'information-outline', label: 'Version', value: '1.0.0' },
+        { icon: 'tag-outline', label: 'Build', value: 'Release' },
       ],
     },
   ];
@@ -80,143 +74,97 @@ const AdminProfileScreen = ({ navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoRow}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>DF</Text>
-            </View>
-          </View>
           <Text style={styles.headerTitle}>Admin Profile</Text>
         </View>
 
         {/* Avatar Card */}
-        <View style={styles.profileCard}>
-          <View style={styles.avatarWrapper}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
-            <View style={styles.adminIndicator}>
-              <Icon name="shield-account" size={14} color={COLORS.textDark} />
-            </View>
+        <View style={styles.avatarCard}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>{getInitials(displayName)}</Text>
           </View>
-
-          <View style={styles.profileInfo}>
-            <Text style={styles.displayName}>{displayName}</Text>
-            <Text style={styles.displayEmail}>{displayEmail}</Text>
-
-            <View style={styles.badgeRow}>
-              <View style={styles.adminBadge}>
-                <Icon name="shield-account" size={12} color={COLORS.primary} />
-                <Text style={styles.adminBadgeText}>Administrator</Text>
-              </View>
-              <View style={styles.verifiedBadge}>
-                <Icon name="check-decagram" size={12} color={COLORS.success} />
-                <Text style={styles.verifiedText}>Verified</Text>
-              </View>
+          <View style={styles.avatarInfo}>
+            <Text style={styles.avatarName}>{displayName}</Text>
+            <Text style={styles.avatarEmail}>{email}</Text>
+            <View style={styles.adminBadge}>
+              <Icon name="shield-account" size={12} color={COLORS.warning} />
+              <Text style={styles.adminBadgeText}>Administrator</Text>
             </View>
           </View>
         </View>
 
-        {/* Admin Stats */}
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
-            <Icon name="view-dashboard" size={20} color={COLORS.primary} />
-            <Text style={styles.statLabel}>Dashboard Access</Text>
-            <View style={styles.statStatus}>
-              <Icon name="check-circle" size={14} color={COLORS.success} />
-              <Text style={styles.statStatusText}>Active</Text>
-            </View>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Icon name="database" size={20} color={COLORS.primary} />
-            <Text style={styles.statLabel}>Full Data Access</Text>
-            <View style={styles.statStatus}>
-              <Icon name="check-circle" size={14} color={COLORS.success} />
-              <Text style={styles.statStatusText}>Enabled</Text>
-            </View>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Icon name="account-cog" size={20} color={COLORS.primary} />
-            <Text style={styles.statLabel}>User Management</Text>
-            <View style={styles.statStatus}>
-              <Icon name="check-circle" size={14} color={COLORS.success} />
-              <Text style={styles.statStatusText}>Active</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Menu Sections */}
-        {adminMenu.map((section) => (
-          <View key={section.section} style={styles.menuSection}>
-            <Text style={styles.menuSectionTitle}>{section.section}</Text>
-            <View style={styles.menuCard}>
-              {section.items.map((item, index) => (
-                <React.Fragment key={item.label}>
-                  <TouchableOpacity
-                    style={styles.menuItem}
-                    onPress={item.onPress}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.menuIconBg}>
-                      <Icon name={item.icon} size={20} color={COLORS.primary} />
-                    </View>
-                    <Text style={styles.menuLabel}>{item.label}</Text>
-                    <Icon name="chevron-right" size={20} color={COLORS.textMuted} />
-                  </TouchableOpacity>
-                  {index < section.items.length - 1 && <View style={styles.menuDivider} />}
-                </React.Fragment>
+        {/* Info Sections */}
+        {MENU_ITEMS.map((section) => (
+          <View key={section.section} style={styles.section}>
+            <Text style={styles.sectionTitle}>{section.section}</Text>
+            <View style={styles.sectionCard}>
+              {section.items.map((item, idx) => (
+                <View
+                  key={item.label}
+                  style={[
+                    styles.menuRow,
+                    idx < section.items.length - 1 && styles.menuRowBorder,
+                  ]}
+                >
+                  <View style={styles.menuIconWrap}>
+                    <Icon name={item.icon} size={18} color={COLORS.primary} />
+                  </View>
+                  <Text style={styles.menuLabel}>{item.label}</Text>
+                  <Text style={styles.menuValue} numberOfLines={1}>{item.value}</Text>
+                </View>
               ))}
             </View>
           </View>
         ))}
 
-        {/* Account Info */}
-        <View style={styles.infoCard}>
-          <Text style={styles.menuSectionTitle}>Account Details</Text>
-          <View style={styles.infoRow}>
-            <Icon name="email-outline" size={16} color={COLORS.textMuted} />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Email Address</Text>
-              <Text style={styles.infoValue}>{displayEmail}</Text>
-            </View>
-          </View>
-          <View style={styles.infoDivider} />
-          <View style={styles.infoRow}>
-            <Icon name="account-outline" size={16} color={COLORS.textMuted} />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Display Name</Text>
-              <Text style={styles.infoValue}>{displayName}</Text>
-            </View>
-          </View>
-          <View style={styles.infoDivider} />
-          <View style={styles.infoRow}>
-            <Icon name="shield-check" size={16} color={COLORS.textMuted} />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Access Level</Text>
-              <Text style={[styles.infoValue, { color: COLORS.primary }]}>Administrator</Text>
-            </View>
+        {/* Permissions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Permissions</Text>
+          <View style={styles.sectionCard}>
+            {[
+              { icon: 'package-variant', label: 'Manage Products' },
+              { icon: 'clipboard-list', label: 'Manage Orders' },
+              { icon: 'account-group', label: 'Manage Users' },
+              { icon: 'cash-multiple', label: 'View Revenue' },
+            ].map((perm, idx, arr) => (
+              <View
+                key={perm.label}
+                style={[styles.menuRow, idx < arr.length - 1 && styles.menuRowBorder]}
+              >
+                <View style={styles.menuIconWrap}>
+                  <Icon name={perm.icon} size={18} color={COLORS.primary} />
+                </View>
+                <Text style={styles.menuLabel}>{perm.label}</Text>
+                <Icon name="check-circle" size={18} color={COLORS.primary} />
+              </View>
+            ))}
           </View>
         </View>
 
-        {/* Logout */}
-        <TouchableOpacity
-          style={[styles.logoutButton, loggingOut && styles.logoutDisabled]}
-          onPress={handleLogout}
-          disabled={loggingOut}
-          activeOpacity={0.85}
-        >
-          {loggingOut ? (
-            <ActivityIndicator color={COLORS.error} size="small" />
-          ) : (
-            <>
-              <Icon name="logout" size={20} color={COLORS.error} />
-              <Text style={styles.logoutText}>Sign Out of Admin Panel</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        {/* Sign Out */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.signOutBtn}
+            onPress={handleLogout}
+            disabled={loggingOut}
+            activeOpacity={0.8}
+          >
+            {loggingOut ? (
+              <ActivityIndicator size="small" color={COLORS.error} />
+            ) : (
+              <>
+                <Icon name="logout" size={18} color={COLORS.error} />
+                <Text style={styles.signOutText}>Sign Out</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
 
-        <Text style={styles.version}>DF Mobile Admin v1.0.0 · Smart Choice, Better Life</Text>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>DF Mobile — Smart Choice, Better Life</Text>
+          <Text style={styles.footerSub}>© 2024 DF Mobile. All rights reserved.</Text>
+        </View>
+
         <View style={{ height: 32 }} />
       </ScrollView>
     </View>
@@ -224,268 +172,98 @@ const AdminProfileScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: COLORS.textPrimary },
+  avatarCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    gap: 8,
-  },
-  logoRow: {
-    marginBottom: 4,
-  },
-  logoCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.neon,
-  },
-  logoText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.textDark,
-    letterSpacing: 1,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.textPrimary,
-  },
-  profileCard: {
     backgroundColor: COLORS.card,
-    borderRadius: 16,
     marginHorizontal: 16,
+    borderRadius: 16,
     padding: 20,
+    gap: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
-    marginBottom: 14,
-    alignItems: 'center',
-    gap: 12,
+    marginBottom: 20,
   },
-  avatarWrapper: {
-    position: 'relative',
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: COLORS.primary,
+  avatarCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: COLORS.warning + '25',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: COLORS.neon,
+    borderWidth: 2.5,
+    borderColor: COLORS.warning,
   },
-  avatarText: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: COLORS.textDark,
-  },
-  adminIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    right: -2,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.background,
-  },
-  profileInfo: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  displayName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-  },
-  displayEmail: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
-  },
+  avatarText: { fontSize: 26, fontWeight: '900', color: COLORS.warning },
+  avatarInfo: { flex: 1, gap: 4 },
+  avatarName: { fontSize: 18, fontWeight: '800', color: COLORS.textPrimary },
+  avatarEmail: { fontSize: 13, color: COLORS.textSecondary },
   adminBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.primary + '20',
+    gap: 5,
+    backgroundColor: COLORS.warning + '20',
     borderRadius: 10,
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: COLORS.primary + '40',
+    paddingVertical: 3,
+    alignSelf: 'flex-start',
+    marginTop: 4,
   },
-  adminBadgeText: {
-    color: COLORS.primary,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.success + '20',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    gap: 4,
-  },
-  verifiedText: {
-    color: COLORS.success,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  statsCard: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.card,
-    borderRadius: 14,
-    marginHorizontal: 16,
-    padding: 12,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-    padding: 4,
-  },
-  statLabel: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 13,
-  },
-  statStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  statStatusText: {
-    fontSize: 10,
-    color: COLORS.success,
-    fontWeight: '600',
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: COLORS.border,
-    marginVertical: 4,
-  },
-  menuSection: {
-    marginHorizontal: 16,
-    marginBottom: 14,
-  },
-  menuSectionTitle: {
+  adminBadgeText: { fontSize: 11, fontWeight: '700', color: COLORS.warning },
+  section: { paddingHorizontal: 16, marginBottom: 16 },
+  sectionTitle: {
     fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  menuCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 14,
-    padding: 6,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    gap: 12,
-  },
-  menuIconBg: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: COLORS.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  menuLabel: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.textPrimary,
-  },
-  menuDivider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 10,
-  },
-  infoCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 14,
-    marginHorizontal: 16,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  infoContent: {
-    flex: 1,
-    gap: 2,
-  },
-  infoLabel: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-  },
-  infoValue: {
-    fontSize: 14,
-    color: COLORS.textPrimary,
-    fontWeight: '500',
-  },
-  infoDivider: {
-    height: 1,
-    backgroundColor: COLORS.border,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 16,
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: COLORS.error,
-    gap: 8,
-    marginBottom: 12,
-  },
-  logoutDisabled: {
-    opacity: 0.6,
-  },
-  logoutText: {
-    color: COLORS.error,
-    fontSize: 15,
     fontWeight: '700',
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 10,
   },
-  version: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginBottom: 8,
+  sectionCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
   },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  menuRowBorder: { borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  menuIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: COLORS.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuLabel: { flex: 1, fontSize: 14, color: COLORS.textPrimary, fontWeight: '500' },
+  menuValue: { fontSize: 13, color: COLORS.textSecondary, maxWidth: 150 },
+  signOutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: COLORS.error + '15',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.error + '40',
+  },
+  signOutText: { fontSize: 15, fontWeight: '700', color: COLORS.error },
+  footer: { alignItems: 'center', gap: 4, paddingHorizontal: 16, marginTop: 8 },
+  footerText: { fontSize: 13, color: COLORS.textMuted, fontWeight: '500' },
+  footerSub: { fontSize: 11, color: COLORS.textMuted },
 });
 
 export default AdminProfileScreen;
